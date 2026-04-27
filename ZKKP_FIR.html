@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZKKP · Pyongyang FIR</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080c10;
+    --bg2: #0d1117;
+    --bg3: #111820;
+    --surface: #141c26;
+    --surface2: #1a2333;
+    --border: rgba(96,180,255,0.1);
+    --border2: rgba(96,180,255,0.2);
+    --accent: #3b9eff;
+    --accent2: #60b4ff;
+    --accent3: #a8d4ff;
+    --amber: #f0a832;
+    --amber2: #ffc55a;
+    --green: #2dd4a0;
+    --red: #ff5a5a;
+    --text: #dce8f5;
+    --text2: #7fa8cc;
+    --text3: #4a6680;
+    --mono: 'IBM Plex Mono', monospace;
+    --display: 'Syne', sans-serif;
+    --body: 'Noto Sans TC', sans-serif;
+    --glow: 0 0 40px rgba(59,158,255,0.08);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(59,158,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(59,158,255,0.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 24px 60px; }
+
+  /* ── HEADER ── */
+  .hero {
+    padding: 52px 0 36px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 40px;
+    position: relative;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 0;
+    width: 200px; height: 1px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+  }
+  .hero-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .hero-tag::before {
+    content: '';
+    display: block; width: 20px; height: 1px;
+    background: var(--accent);
+  }
+  .hero-title {
+    font-family: var(--display);
+    font-size: clamp(36px, 6vw, 64px);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+  .hero-title span {
+    color: var(--accent2);
+  }
+  .hero-sub {
+    font-size: 14px;
+    color: var(--text2);
+    font-family: var(--mono);
+    letter-spacing: 0.05em;
+  }
+  .hero-badges {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-top: 20px;
+  }
+  .hbadge {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 4px 12px;
+    border-radius: 2px;
+    border: 1px solid;
+    letter-spacing: 0.08em;
+  }
+  .hbadge.blue { border-color: var(--accent); color: var(--accent2); background: rgba(59,158,255,0.06); }
+  .hbadge.amber { border-color: var(--amber); color: var(--amber2); background: rgba(240,168,50,0.06); }
+  .hbadge.green { border-color: var(--green); color: var(--green); background: rgba(45,212,160,0.06); }
+
+  /* ── NAV TABS ── */
+  .nav-tabs {
+    display: flex; gap: 2px;
+    margin-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nav-tabs::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 12px 24px;
+    background: none;
+    border: none;
+    color: var(--text3);
+    cursor: pointer;
+    position: relative;
+    white-space: nowrap;
+    transition: color 0.2s;
+  }
+  .tab-btn::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transition: transform 0.25s ease;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--accent2); }
+  .tab-btn.active::after { transform: scaleX(1); }
+
+  /* ── PANELS ── */
+  .panel { display: none; animation: fadeUp 0.3s ease; }
+  .panel.active { display: block; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── STAT CARDS ── */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 18px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .stat-card:hover {
+    border-color: var(--border2);
+    transform: translateY(-2px);
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+  }
+  .stat-card.amber::before { background: linear-gradient(90deg, var(--amber), transparent); }
+  .stat-card.green::before { background: linear-gradient(90deg, var(--green), transparent); }
+  .stat-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .stat-value {
+    font-family: var(--display);
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1;
+  }
+  .stat-unit {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text2);
+    margin-top: 4px;
+  }
+
+  /* ── SECTION CARD ── */
+  .section-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 22px;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: var(--border2); }
+  .card-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-title::before {
+    content: '';
+    display: block; width: 12px; height: 1px;
+    background: var(--accent);
+  }
+
+  /* ── TABLE ── */
+  .tbl-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(96,180,255,0.05);
+    color: var(--text);
+    vertical-align: middle;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(59,158,255,0.03); }
+  .mono { font-family: var(--mono); font-size: 12px; color: var(--accent3); }
+
+  /* ── PILLS ── */
+  .pill {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 3px 9px;
+    border-radius: 2px;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+  .pill-blue { border-color: var(--accent); color: var(--accent2); background: rgba(59,158,255,0.08); }
+  .pill-green { border-color: var(--green); color: var(--green); background: rgba(45,212,160,0.08); }
+  .pill-amber { border-color: var(--amber); color: var(--amber2); background: rgba(240,168,50,0.08); }
+  .pill-red { border-color: var(--red); color: var(--red); background: rgba(255,90,90,0.08); }
+
+  /* ── RWY VISUAL ── */
+  .rwy-container { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  .rwy-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .rwy-card::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(59,158,255,0.06), transparent 70%);
+  }
+  .rwy-number {
+    font-family: var(--display);
+    font-size: 52px;
+    font-weight: 800;
+    line-height: 1;
+    color: rgba(96,180,255,0.15);
+    position: absolute;
+    top: 10px; right: 16px;
+    letter-spacing: -0.03em;
+  }
+  .rwy-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .rwy-row {
+    display: flex; align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(96,180,255,0.06);
+    gap: 10px;
+  }
+  .rwy-row:last-child { border-bottom: none; }
+  .rwy-sid { font-family: var(--mono); font-size: 13px; font-weight: 500; color: var(--accent3); min-width: 100px; }
+  .rwy-airway { font-size: 12px; color: var(--text2); }
+
+  /* ── WARNING BOX ── */
+  .warn-box {
+    background: rgba(240,168,50,0.06);
+    border: 1px solid rgba(240,168,50,0.2);
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--amber2);
+    margin-top: 16px;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .warn-box .icon { flex-shrink: 0; font-size: 14px; margin-top: 1px; }
+  .info-box {
+    background: rgba(59,158,255,0.05);
+    border: 1px solid rgba(59,158,255,0.15);
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--accent3);
+    margin-top: 16px;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+
+  /* ── LOA SUB TABS ── */
+  .sub-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+  .sub-btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 7px 16px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text3);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .sub-btn:hover { color: var(--text); border-color: var(--border2); }
+  .sub-btn.active { background: rgba(59,158,255,0.1); border-color: var(--accent); color: var(--accent2); }
+  .sub-panel { display: none; }
+  .sub-panel.active { display: block; animation: fadeUp 0.25s ease; }
+
+  /* ── STAR VISUAL TABLE ── */
+  .star-grid { display: grid; gap: 10px; }
+  .star-row {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 18px;
+    display: grid;
+    grid-template-columns: 80px 1fr 1fr 1fr;
+    align-items: center;
+    gap: 12px;
+    transition: border-color 0.2s;
+  }
+  .star-row:hover { border-color: var(--border2); }
+  .star-row.header {
+    background: transparent;
+    border-color: transparent;
+    padding-bottom: 4px;
+  }
+  .star-fix { font-family: var(--mono); font-size: 15px; font-weight: 500; color: var(--accent2); }
+  .star-header-cell { font-family: var(--mono); font-size: 10px; color: var(--text3); letter-spacing: 0.12em; text-transform: uppercase; }
+  .star-alt { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  .star-alt-label { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+  /* ── ALTITUDE BAR ── */
+  .alt-bar-wrap { display: flex; align-items: center; gap: 10px; }
+  .alt-bar {
+    flex: 1; height: 4px; background: var(--bg3); border-radius: 2px; overflow: hidden;
+  }
+  .alt-fill { height: 100%; border-radius: 2px; background: var(--accent); transition: width 0.6s ease; }
+  .alt-fill.amber { background: var(--amber); }
+  .alt-num { font-family: var(--mono); font-size: 12px; color: var(--text2); white-space: nowrap; min-width: 70px; text-align: right; }
+
+  /* ── SEPARATOR ── */
+  .sep { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+
+  /* ── FOOTER ── */
+  .footer {
+    border-top: 1px solid var(--border);
+    padding-top: 24px;
+    margin-top: 40px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text3);
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
+  }
+
+  /* ── WAKE TURB MATRIX ── */
+  .wt-matrix { width: 100%; border-collapse: collapse; }
+  .wt-matrix th {
+    background: var(--bg3);
+    font-family: var(--mono); font-size: 10px;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--text3); padding: 10px 14px;
+    border: 1px solid var(--border); text-align: center;
+  }
+  .wt-matrix td { padding: 10px 14px; border: 1px solid rgba(96,180,255,0.06); text-align: center; vertical-align: middle; }
+  .wt-matrix td.row-head { text-align: left; background: var(--bg3); font-size: 12px; font-weight: 500; border-color: var(--border); }
+  .wt-matrix tr:hover td { background: rgba(59,158,255,0.025); }
+  .sep-val { font-family: var(--display); font-size: 20px; font-weight: 700; line-height: 1; }
+  .sep-unit { font-family: var(--mono); font-size: 10px; color: var(--text3); margin-top: 2px; }
+  .cat-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 3px; font-family: var(--mono); font-size: 11px; font-weight: 500; }
+  .cat-s { background: rgba(255,90,90,0.1); border: 1px solid rgba(255,90,90,0.3); color: #ff8a8a; }
+  .cat-h { background: rgba(240,168,50,0.1); border: 1px solid rgba(240,168,50,0.3); color: var(--amber2); }
+  .cat-m { background: rgba(59,158,255,0.1); border: 1px solid rgba(59,158,255,0.3); color: var(--accent2); }
+  .cat-l { background: rgba(45,212,160,0.1); border: 1px solid rgba(45,212,160,0.3); color: var(--green); }
+  .flow-steps { display: grid; gap: 10px; }
+  .flow-step { display: flex; align-items: flex-start; gap: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px; transition: border-color 0.2s; }
+  .flow-step:hover { border-color: var(--border2); }
+  .flow-num { font-family: var(--display); font-size: 28px; font-weight: 800; color: rgba(96,180,255,0.15); line-height: 1; flex-shrink: 0; min-width: 32px; }
+  .flow-content { flex: 1; }
+  .flow-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+  .flow-desc { font-size: 12px; color: var(--text3); line-height: 1.6; }
+  .sep-note { background: var(--surface); border-left: 3px solid var(--accent); border-radius: 0 6px 6px 0; padding: 12px 16px; font-size: 13px; color: var(--text2); }
+  .sep-note + .sep-note { margin-top: 8px; }
+  .sep-note.amber { border-left-color: var(--amber); }
+  .sep-note.green { border-left-color: var(--green); }
+  /* SCAN LINE EFFECT */
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+    pointer-events: none; z-index: 9999;
+  }
+
+  @media (max-width: 600px) {
+    .rwy-container { grid-template-columns: 1fr; }
+    .star-row { grid-template-columns: 70px 1fr 1fr; }
+    .star-row .star-col-3 { display: none; }
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HERO -->
+  <header class="hero">
+    <div class="hero-tag">Aviation · FIR Reference</div>
+    <h1 class="hero-title">ZKKP <span>·</span> FIR</h1>
+    <p class="hero-sub">Pyongyang Flight Information Region — 平壤飛航情報區</p>
+    <div class="hero-badges">
+      <span class="hbadge blue">FL010–FL140</span>
+      <span class="hbadge amber">SQK 4001–4077</span>
+      <span class="hbadge green">ZKPY / ZKWS</span>
+    </div>
+  </header>
+
+  <!-- TABS -->
+  <nav class="nav-tabs">
+    <button class="tab-btn active" onclick="switchTab('info',this)">基本資訊</button>
+    <button class="tab-btn" onclick="switchTab('sid',this)">SID 離場</button>
+    <button class="tab-btn" onclick="switchTab('star',this)">STAR 進場</button>
+    <button class="tab-btn" onclick="switchTab('loa',this)">LOA 協議</button>
+    <button class="tab-btn" onclick="switchTab('sep',this)">間隔標準</button>
+  </nav>
+
+  <!-- ═══════ PANEL: INFO ═══════ -->
+  <div id="panel-info" class="panel active">
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-label">管制高度</div>
+        <div class="stat-value">FL010</div>
+        <div class="stat-unit">至 FL140</div>
+      </div>
+      <div class="stat-card amber">
+        <div class="stat-label">過渡高度層</div>
+        <div class="stat-value">FL130</div>
+        <div class="stat-unit">Transition Level</div>
+      </div>
+      <div class="stat-card amber">
+        <div class="stat-label">過渡高度</div>
+        <div class="stat-value">12,000</div>
+        <div class="stat-unit">ft · Transition Alt</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">應答機代碼</div>
+        <div class="stat-value" style="font-size:18px;font-family:var(--mono)">4001–4077</div>
+        <div class="stat-unit">SQK Range</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-label">VFR 能見度</div>
+        <div class="stat-value">&gt;5</div>
+        <div class="stat-unit">km 最低限制</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-label">VFR 雲頂高</div>
+        <div class="stat-value">&gt;1,500</div>
+        <div class="stat-unit">ft 最低限制</div>
+      </div>
+    </div>
+
+    <div class="section-grid">
+      <div class="card">
+        <div class="card-title">管制區域</div>
+        <table>
+          <tbody>
+            <tr>
+              <td style="color:var(--text3);width:90px;font-size:12px;">主要 TCA</td>
+              <td>Pyongyang TCA</td>
+              <td class="mono">ZKPY</td>
+            </tr>
+            <tr>
+              <td style="color:var(--text3);font-size:12px;">次要 TCA</td>
+              <td>Kalma TCA</td>
+              <td class="mono">ZKWS</td>
+            </tr>
+            <tr>
+              <td style="color:var(--text3);font-size:12px;">VFR 最低</td>
+              <td>1,500 ft</td>
+              <td style="color:var(--text3);font-size:11px;">目視飛行高度</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-title">使用跑道</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+            <div>
+              <div style="font-family:var(--display);font-size:28px;font-weight:700;color:#fff;">RW<span style="color:var(--accent2)">17</span></div>
+              <div style="font-size:12px;color:var(--text3);margin-top:2px;">Right Traffic</div>
+            </div>
+            <span class="pill pill-blue">右方航線</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;">
+            <div>
+              <div style="font-family:var(--display);font-size:28px;font-weight:700;color:#fff;">RW<span style="color:var(--green)">35</span></div>
+              <div style="font-size:12px;color:var(--text3);margin-top:2px;">Left Traffic</div>
+            </div>
+            <span class="pill pill-green">左方航線</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ PANEL: SID ═══════ -->
+  <div id="panel-sid" class="panel">
+    <div class="rwy-container">
+      <!-- RWY 35 -->
+      <div class="rwy-card">
+        <div class="rwy-number">35</div>
+        <div class="rwy-title">Runway 35 — 離場程序</div>
+        <div class="rwy-row">
+          <div class="rwy-sid">SASRI21D</div>
+          <div class="rwy-airway"><span class="pill pill-blue">W1</span> <span class="pill pill-blue">W5</span></div>
+        </div>
+        <div class="rwy-row">
+          <div class="rwy-sid">BODOK21D</div>
+          <div class="rwy-airway"><span class="pill pill-blue">A575</span> <span class="pill pill-blue">B332</span></div>
+        </div>
+        <div class="rwy-row">
+          <div class="rwy-sid">JONJU21D</div>
+          <div class="rwy-airway"><span class="pill pill-blue">A575</span></div>
+        </div>
+        <div class="rwy-row">
+          <div class="rwy-sid">SOCHA21D</div>
+          <div class="rwy-airway"><span class="pill pill-blue">R452</span> <span class="pill pill-blue">W2</span></div>
+        </div>
+        <div class="rwy-row">
+          <div class="rwy-sid">SOKGE21D</div>
+          <div class="rwy-airway"><span class="pill pill-blue">B332</span> <span class="pill pill-blue">W7</span></div>
+        </div>
+        <div class="rwy-row">
+          <div class="rwy-sid" style="color:var(--amber2)">Radar Vec</div>
+          <div class="rwy-airway"><span class="pill pill-amber">HDG 300</span></div>
+        </div>
+      </div>
+
+      <!-- RWY 17 -->
+      <div class="rwy-card" style="border-color:rgba(45,212,160,0.15)">
+        <div class="rwy-number" style="color:rgba(45,212,160,0.15)">17</div>
+        <div class="rwy-title">Runway 17 — 離場程序</div>
+        <div class="rwy-row">
+          <div class="rwy-sid" style="color:var(--green)">SASRI11D</div>
+          <div class="rwy-airway"><span class="pill pill-green">W1</span> <span class="pill pill-green">W5</span></div>
+        </div>
+        <div class="rwy-row">
+          <div class="rwy-sid" style="color:var(--green)">BODOK11D</div>
+          <div class="rwy-airway"><span class="pill pill-green">A575</span> <span class="pill pill-green">B332</span></div>
+        </div>
+        <div class="rwy-row">
+          <div class="rwy-sid" style="color:var(--green)">JONJU11D</div>
+          <div class="rwy-airway"><span class="pill pill-green">A575</span></div>
+        </div>
+        <div class="rwy-row">
+          <div class="rwy-sid" style="color:var(--green)">SOCHA11D</div>
+          <div class="rwy-airway"><span class="pill pill-green">R452</span> <span class="pill pill-green">W2</span></div>
+        </div>
+        <div class="rwy-row">
+          <div class="rwy-sid" style="color:var(--green)">SOKGE11D</div>
+          <div class="rwy-airway"><span class="pill pill-green">B332</span> <span class="pill pill-green">W7</span></div>
+        </div>
+        <div class="rwy-row">
+          <div class="rwy-sid" style="color:var(--amber2)">Radar Vec</div>
+          <div class="rwy-airway"><span class="pill pill-amber">HDG 240</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-grid">
+      <div class="card">
+        <div class="card-title">初始高度 · Initial ALT</div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div>
+            <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:6px;">噴射機 JET</div>
+            <div class="alt-bar-wrap">
+              <div class="alt-bar"><div class="alt-fill" style="width:75%"></div></div>
+              <div class="alt-num">6,000 ft</div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:6px;">小型飛機 PROP</div>
+            <div class="alt-bar-wrap">
+              <div class="alt-bar"><div class="alt-fill" style="width:50%" ></div></div>
+              <div class="alt-num">4,000 ft</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">高度與速度限制</div>
+        <table>
+          <tbody>
+            <tr>
+              <td style="color:var(--text3);font-size:12px;">限制高度</td>
+              <td><span class="mono">10,000 ft</span> 以下</td>
+            </tr>
+            <tr>
+              <td style="color:var(--text3);font-size:12px;">速度上限</td>
+              <td><span class="mono">250 kt</span> IAS</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="warn-box">
+          <span class="icon">⚡</span>
+          <div>
+            例外需 ATC 授權，或機型性能限制時須主動告知。<br>
+            解除術語：<strong style="font-family:var(--mono);color:var(--amber2)">NO ATC SPEED RESTRICTIONS</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ PANEL: STAR ═══════ -->
+  <div id="panel-star" class="panel">
+    <div class="card" style="margin-bottom:0">
+      <div class="card-title">標準進場程序 STAR — 定點高度限制</div>
+
+      <div class="star-grid">
+        <div class="star-row header">
+          <div class="star-header-cell">定點</div>
+          <div class="star-header-cell">RWY 17 STAR</div>
+          <div class="star-header-cell star-col-3">RWY 35 STAR</div>
+          <div class="star-header-cell">高度限制</div>
+        </div>
+
+        <div class="star-row">
+          <div class="star-fix">BODOK</div>
+          <div>
+            <span class="pill pill-blue">11A</span>
+            <div style="margin-top:8px;">
+              <div class="alt-bar-wrap"><div class="alt-bar"><div class="alt-fill" style="width:41%"></div></div><div class="alt-num">5,000 ft</div></div>
+            </div>
+          </div>
+          <div class="star-col-3">
+            <span class="pill pill-green">21A</span>
+            <div style="margin-top:8px;">
+              <div class="alt-bar-wrap"><div class="alt-bar"><div class="alt-fill amber" style="width:76%"></div></div><div class="alt-num">9,200 ft</div></div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:3px;">17 / 35</div>
+            <span class="pill pill-blue" style="margin-right:4px;">5,000</span>
+            <span class="pill pill-amber">9,200</span>
+          </div>
+        </div>
+
+        <div class="star-row">
+          <div class="star-fix">GASAN</div>
+          <div>
+            <span class="pill pill-blue">11A</span>
+            <div style="margin-top:8px;">
+              <div class="alt-bar-wrap"><div class="alt-bar"><div class="alt-fill" style="width:65%"></div></div><div class="alt-num">7,900 ft</div></div>
+            </div>
+          </div>
+          <div class="star-col-3">
+            <span class="pill pill-green">21A</span>
+            <div style="margin-top:8px;">
+              <div class="alt-bar-wrap"><div class="alt-bar"><div class="alt-fill amber" style="width:100%"></div></div><div class="alt-num">12,000 ft</div></div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:3px;">17 / 35</div>
+            <span class="pill pill-blue" style="margin-right:4px;">7,900</span>
+            <span class="pill pill-amber">12,000</span>
+          </div>
+        </div>
+
+        <div class="star-row">
+          <div class="star-fix">SASRI</div>
+          <div>
+            <span class="pill pill-blue">11A</span>
+            <div style="margin-top:8px;">
+              <div class="alt-bar-wrap"><div class="alt-bar"><div class="alt-fill" style="width:65%"></div></div><div class="alt-num">7,900 ft</div></div>
+            </div>
+          </div>
+          <div class="star-col-3">
+            <span class="pill pill-green">21A</span>
+            <div style="margin-top:8px;">
+              <div class="alt-bar-wrap"><div class="alt-bar"><div class="alt-fill amber" style="width:44%"></div></div><div class="alt-num">5,300 ft</div></div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:3px;">17 / 35</div>
+            <span class="pill pill-blue" style="margin-right:4px;">7,900</span>
+            <span class="pill pill-amber">5,300</span>
+          </div>
+        </div>
+
+        <div class="star-row">
+          <div class="star-fix">SOCHA</div>
+          <div>
+            <span class="pill pill-blue">11A</span>
+            <div style="margin-top:8px;">
+              <div class="alt-bar-wrap"><div class="alt-bar"><div class="alt-fill" style="width:74%"></div></div><div class="alt-num">8,900 ft</div></div>
+            </div>
+          </div>
+          <div class="star-col-3">
+            <span class="pill pill-green">21A</span>
+            <div style="margin-top:8px;">
+              <div class="alt-bar-wrap"><div class="alt-bar"><div class="alt-fill amber" style="width:100%"></div></div><div class="alt-num">12,000 ft</div></div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:3px;">17 / 35</div>
+            <span class="pill pill-blue" style="margin-right:4px;">8,900</span>
+            <span class="pill pill-amber">12,000</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ PANEL: LOA ═══════ -->
+  <div id="panel-loa" class="panel">
+    <div class="sub-tabs">
+      <button class="sub-btn active" onclick="switchLoa('china',this)">🇨🇳 中國</button>
+      <button class="sub-btn" onclick="switchLoa('japan',this)">🇯🇵 日本</button>
+      <button class="sub-btn" onclick="switchLoa('russia',this)">🇷🇺 俄羅斯</button>
+    </div>
+
+    <!-- China -->
+    <div id="loa-china" class="sub-panel active">
+      <div class="card">
+        <div class="card-title">轉交瀋陽管制 · China Shenyang LOA</div>
+        <div class="info-box" style="margin-bottom:16px;margin-top:0;">
+          <span>ℹ</span><span>出發高度以 <strong>METER</strong> 為單位（非英尺）</span>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>引導點 (Fix)</th><th>主要過渡航路</th><th>替代航路</th></tr></thead>
+            <tbody>
+              <tr>
+                <td class="mono" style="font-size:14px;">VASRO</td>
+                <td><span class="pill pill-blue">R224 RNAV</span></td>
+                <td style="color:var(--text3);">—</td>
+              </tr>
+              <tr>
+                <td class="mono" style="font-size:14px;">GOLOT</td>
+                <td><span class="pill pill-blue">A345 RNAV</span></td>
+                <td><span class="pill pill-amber">A575</span></td>
+              </tr>
+              <tr>
+                <td class="mono" style="font-size:14px;">PONIL</td>
+                <td><span class="pill pill-blue">B332</span></td>
+                <td style="color:var(--text3);">—</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Japan -->
+    <div id="loa-japan" class="sub-panel">
+      <div class="card">
+        <div class="card-title">日本航路協議 · Japan LOA</div>
+        <div class="warn-box" style="margin-bottom:16px;margin-top:0;">
+          <span class="icon">⚠</span>
+          <span>日本與平壤之間<strong>無直接航路</strong>，需經由第三地區中轉</span>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>地區 / 類型</th><th>航路</th><th>備註</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div style="font-weight:500;">經由仁川</div>
+                  <div style="font-size:11px;color:var(--text3);">Incheon</div>
+                </td>
+                <td class="mono" style="font-size:11px;line-height:1.8;">KANSU Z56 SABET<br>L512 ANDOL</td>
+                <td style="font-size:12px;color:var(--text3);">無直接航路</td>
+              </tr>
+              <tr>
+                <td>
+                  <div style="font-weight:500;">經由哈巴羅夫斯克</div>
+                  <div style="font-size:11px;color:var(--text3);">Khabarovsk</div>
+                </td>
+                <td class="mono" style="font-size:11px;line-height:1.8;">NULAR B233 LURED<br>B451 IGROD</td>
+                <td style="font-size:12px;color:var(--text3);">無直接航路</td>
+              </tr>
+              <tr>
+                <td><span class="pill pill-green">直飛許可</span></td>
+                <td class="mono">EKVIK → Y347</td>
+                <td style="font-size:12px;color:var(--amber2);">需與日本管制員協調</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Russia -->
+    <div id="loa-russia" class="sub-panel">
+      <div class="card">
+        <div class="card-title">俄羅斯 / 南韓移交航路 · Russia & Korea LOA</div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>國家 / 引導點</th><th>航路</th><th>方向 / 備註</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><span style="font-size:12px;color:var(--text3);">俄羅斯</span> <span class="mono">ADNUR</span></td>
+                <td><span class="pill pill-blue">B356</span></td>
+                <td style="font-size:12px;">前往俄羅斯 →</td>
+              </tr>
+              <tr>
+                <td><span style="font-size:12px;color:var(--text3);">俄羅斯</span> <span class="mono">BUMEP</span></td>
+                <td><span class="pill pill-blue">B355</span></td>
+                <td style="font-size:12px;">← 來自俄羅斯</td>
+              </tr>
+              <tr>
+                <td><span style="font-size:12px;color:var(--text3);">俄羅斯</span> <span class="mono">RIVAT</span></td>
+                <td><span class="pill pill-blue">A900</span> <span class="pill pill-blue">G705</span></td>
+                <td style="color:var(--text3);">—</td>
+              </tr>
+              <tr>
+                <td><span style="font-size:12px;color:var(--text3);">俄羅斯</span> <span class="mono">NULAR</span></td>
+                <td class="mono" style="font-size:11px;">B941 / A934 / B233</td>
+                <td style="color:var(--text3);">—</td>
+              </tr>
+              <tr>
+                <td><span style="font-size:12px;color:var(--text3);">南韓</span> <span class="mono">KANSU</span></td>
+                <td class="mono" style="font-size:11px;">Y233/B467-Y437<br>B332-Z56</td>
+                <td><span class="pill pill-green">移交點</span></td>
+              </tr>
+              <tr>
+                <td><span style="font-size:12px;color:var(--text3);">南韓</span> <span class="mono">MESOV</span></td>
+                <td><span class="pill pill-blue">N513</span> <span class="pill pill-blue">L771</span></td>
+                <td><span class="pill pill-amber">需平壤核准</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="warn-box">
+          <span class="icon">⚠</span>
+          <div>
+            <strong>南韓注意：DMZ 禁飛區</strong> —
+            IFR 直飛需事先協調，並遵守 <span class="mono" style="color:var(--amber2);">IVAO R&R 1.3</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ PANEL: SEPARATION ═══════ -->
+  <div id="panel-sep" class="panel">
+
+    <!-- Sub-tabs -->
+    <div class="sub-tabs" id="sep-subtabs">
+      <button class="sub-btn active" onclick="switchSep('tower',this)">塔台 TWR</button>
+      <button class="sub-btn" onclick="switchSep('approach',this)">進場 APP</button>
+      <button class="sub-btn" onclick="switchSep('classes',this)">機型分類</button>
+    </div>
+
+    <!-- ── TWR ── -->
+    <div id="sep-tower" class="sub-panel active">
+      <div style="margin-bottom:16px;">
+        <div class="stat-grid" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr))">
+          <div class="stat-card">
+            <div class="stat-label">標準依據</div>
+            <div class="stat-value" style="font-size:16px;font-family:var(--mono)">ICAO Doc 4444</div>
+            <div class="stat-unit">PANS-ATM</div>
+          </div>
+          <div class="stat-card amber">
+            <div class="stat-label">尾流避讓</div>
+            <div class="stat-value">Wake Turb</div>
+            <div class="stat-unit">Separation</div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-label">間隔基準</div>
+            <div class="stat-value">時間 / 距離</div>
+            <div class="stat-unit">Time or Visual</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-grid" style="margin-bottom:20px;">
+        <div class="card" style="grid-column:1/-1;">
+          <div class="card-title">起飛間隔 — 尾流避讓時間標準</div>
+          <div class="tbl-wrap">
+            <table class="wt-matrix">
+              <thead>
+                <tr>
+                  <th style="text-align:left;">前機 Leading</th>
+                  <th>後機 Following</th>
+                  <th>時間間隔</th>
+                  <th>備註</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="row-head"><span class="cat-badge cat-s">Super A380</span></td>
+                  <td><span class="cat-badge cat-h">Heavy</span></td>
+                  <td>
+                    <div class="sep-val" style="color:var(--amber2)">2</div>
+                    <div class="sep-unit">分鐘 min</div>
+                  </td>
+                  <td style="font-size:11px;color:var(--text3);text-align:left;">跑道中段起飛需增加時間</td>
+                </tr>
+                <tr>
+                  <td class="row-head"><span class="cat-badge cat-s">Super A380</span></td>
+                  <td><span class="cat-badge cat-m">Medium</span> <span class="cat-badge cat-l" style="margin-left:4px;">Light</span></td>
+                  <td>
+                    <div class="sep-val" style="color:var(--red)">3</div>
+                    <div class="sep-unit">分鐘 min</div>
+                  </td>
+                  <td style="font-size:11px;color:var(--text3);text-align:left;">—</td>
+                </tr>
+                <tr>
+                  <td class="row-head"><span class="cat-badge cat-h">Heavy</span></td>
+                  <td><span class="cat-badge cat-h">Heavy</span></td>
+                  <td>
+                    <div class="sep-val" style="color:var(--green)">—</div>
+                    <div class="sep-unit">跑道淨空即可</div>
+                  </td>
+                  <td style="font-size:11px;color:var(--text3);text-align:left;">視航路分流而定</td>
+                </tr>
+                <tr>
+                  <td class="row-head"><span class="cat-badge cat-h">Heavy</span></td>
+                  <td><span class="cat-badge cat-m">Medium</span> <span class="cat-badge cat-l" style="margin-left:4px;">Light</span></td>
+                  <td>
+                    <div class="sep-val" style="color:var(--amber2)">2</div>
+                    <div class="sep-unit">分鐘 min</div>
+                  </td>
+                  <td style="font-size:11px;color:var(--text3);text-align:left;">—</td>
+                </tr>
+                <tr>
+                  <td class="row-head"><span class="cat-badge cat-m">Medium</span></td>
+                  <td><span class="cat-badge cat-l">Light</span></td>
+                  <td>
+                    <div class="sep-val" style="color:var(--amber2)">2</div>
+                    <div class="sep-unit">分鐘 min</div>
+                  </td>
+                  <td style="font-size:11px;color:var(--text3);text-align:left;">—</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">降落與起飛混合間隔程序</div>
+        <div class="flow-steps">
+          <div class="flow-step">
+            <div class="flow-num">01</div>
+            <div class="flow-content">
+              <div class="flow-title">連續降落</div>
+              <div class="flow-desc">前機必須已完全<strong style="color:var(--text)">脫離跑道</strong>，後機才可獲得落地許可。</div>
+            </div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-num">02</div>
+            <div class="flow-content">
+              <div class="flow-title">先降落，後起飛</div>
+              <div class="flow-desc">降落機必須完全脫離跑道後，起飛機才可開始<strong style="color:var(--text)">起飛滾行</strong>。</div>
+            </div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-num">03</div>
+            <div class="flow-content">
+              <div class="flow-title">先起飛，後降落</div>
+              <div class="flow-desc">起飛機必須<strong style="color:var(--text)">已離地並通過跑道末端</strong>（或轉向），降落機才可越過跑道頭。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── APP ── -->
+    <div id="sep-approach" class="sub-panel">
+
+      <div class="stat-grid" style="grid-template-columns:repeat(auto-fill,minmax(180px,1fr));margin-bottom:20px;">
+        <div class="stat-card">
+          <div class="stat-label">垂直間隔 FL290↓</div>
+          <div class="stat-value">1,000</div>
+          <div class="stat-unit">ft 最小垂直間隔</div>
+        </div>
+        <div class="stat-card amber">
+          <div class="stat-label">RVSM 空域</div>
+          <div class="stat-value">1,000</div>
+          <div class="stat-unit">ft 縮小垂直間隔</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label">一般雷達間隔</div>
+          <div class="stat-value">3–5</div>
+          <div class="stat-unit">NM 水平最小距離</div>
+        </div>
+      </div>
+
+      <div class="section-grid" style="margin-bottom:20px;">
+        <div class="card">
+          <div class="card-title">水平雷達間隔說明</div>
+          <div class="sep-note">3 NM — 終端管制區內，離機場較近時的一般間隔標準。</div>
+          <div class="sep-note amber" style="margin-top:8px;">5 NM — 距離雷達源較遠或高度較高時適用的擴大間隔。</div>
+        </div>
+        <div class="card">
+          <div class="card-title">垂直間隔補充說明</div>
+          <div class="sep-note">FL290 以下（含 RVSM 空域）：最小垂直間隔 <strong style="color:var(--text)">1,000 ft</strong>。</div>
+          <div class="sep-note green" style="margin-top:8px;">RVSM（縮小垂直間隔標準）適用於 FL290–FL410 之間的航機。</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">進場尾流雷達間隔 — ILS 進場最小距離</div>
+        <div class="tbl-wrap">
+          <table class="wt-matrix">
+            <thead>
+              <tr>
+                <th style="text-align:left;">前機 Leading</th>
+                <th>後機 Following</th>
+                <th>最小距離間隔</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="row-head"><span class="cat-badge cat-s">Super</span></td>
+                <td><span class="cat-badge cat-h">Heavy</span></td>
+                <td><div class="sep-val" style="color:var(--amber2)">6</div><div class="sep-unit">NM</div></td>
+              </tr>
+              <tr>
+                <td class="row-head"><span class="cat-badge cat-s">Super</span></td>
+                <td><span class="cat-badge cat-m">Medium</span></td>
+                <td><div class="sep-val" style="color:var(--red)">7</div><div class="sep-unit">NM</div></td>
+              </tr>
+              <tr>
+                <td class="row-head"><span class="cat-badge cat-s">Super</span></td>
+                <td><span class="cat-badge cat-l">Light</span></td>
+                <td><div class="sep-val" style="color:var(--red)">8</div><div class="sep-unit">NM</div></td>
+              </tr>
+              <tr>
+                <td class="row-head"><span class="cat-badge cat-h">Heavy</span></td>
+                <td><span class="cat-badge cat-h">Heavy</span></td>
+                <td><div class="sep-val" style="color:var(--green)">4</div><div class="sep-unit">NM</div></td>
+              </tr>
+              <tr>
+                <td class="row-head"><span class="cat-badge cat-h">Heavy</span></td>
+                <td><span class="cat-badge cat-m">Medium</span></td>
+                <td><div class="sep-val" style="color:var(--amber2)">5</div><div class="sep-unit">NM</div></td>
+              </tr>
+              <tr>
+                <td class="row-head"><span class="cat-badge cat-h">Heavy</span></td>
+                <td><span class="cat-badge cat-l">Light</span></td>
+                <td><div class="sep-val" style="color:var(--amber2)">6</div><div class="sep-unit">NM</div></td>
+              </tr>
+              <tr>
+                <td class="row-head"><span class="cat-badge cat-m">Medium</span></td>
+                <td><span class="cat-badge cat-l">Light</span></td>
+                <td><div class="sep-val" style="color:var(--amber2)">5</div><div class="sep-unit">NM</div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="info-box" style="margin-top:16px;">
+          <span>ℹ</span>
+          <span>目視天氣良好（VMC）且機師回報「看見前機」後，管制員可縮減雷達間隔，但尾流責任由機師承擔。</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CLASSES ── -->
+    <div id="sep-classes" class="sub-panel">
+      <div class="section-grid">
+        <div class="card" style="border-top:2px solid #ff8a8a;">
+          <div class="card-title" style="color:#ff8a8a;">超重型 · Super (S)</div>
+          <div style="font-family:var(--display);font-size:36px;font-weight:800;color:rgba(255,90,90,0.2);margin-bottom:8px;">S</div>
+          <div style="font-size:13px;color:var(--text2);line-height:1.8;">
+            代表機型：<span class="mono" style="font-size:12px;color:#ff8a8a;">A380、AN-225</span><br>
+            無特定重量下限定義<br>
+            ICAO 特別設立類別<br>
+            產生最強尾流渦流
+          </div>
+        </div>
+        <div class="card" style="border-top:2px solid var(--amber);">
+          <div class="card-title" style="color:var(--amber2);">重型 · Heavy (H)</div>
+          <div style="font-family:var(--display);font-size:36px;font-weight:800;color:rgba(240,168,50,0.2);margin-bottom:8px;">H</div>
+          <div style="font-size:13px;color:var(--text2);line-height:1.8;">
+            代表機型：<span class="mono" style="font-size:12px;color:var(--amber2);">B747、B777、A330、A340</span><br>
+            起飛全重 ≥ <strong style="color:var(--text)">300,000 磅</strong>（約 136 公噸）<br>
+            需要顯著尾流間隔<br>
+            呼號後標注 "HEAVY"
+          </div>
+        </div>
+        <div class="card" style="border-top:2px solid var(--accent);">
+          <div class="card-title" style="color:var(--accent2);">中型 · Medium (M)</div>
+          <div style="font-family:var(--display);font-size:36px;font-weight:800;color:rgba(59,158,255,0.15);margin-bottom:8px;">M</div>
+          <div style="font-size:13px;color:var(--text2);line-height:1.8;">
+            代表機型：<span class="mono" style="font-size:12px;color:var(--accent2);">A320、B737、ATR72</span><br>
+            <strong style="color:var(--text)">15,500 – 300,000 磅</strong> 之間<br>
+            約 7 – 136 公噸<br>
+            最常見民航機類別
+          </div>
+        </div>
+        <div class="card" style="border-top:2px solid var(--green);">
+          <div class="card-title" style="color:var(--green);">小型 · Light (L)</div>
+          <div style="font-family:var(--display);font-size:36px;font-weight:800;color:rgba(45,212,160,0.15);margin-bottom:8px;">L</div>
+          <div style="font-size:13px;color:var(--text2);line-height:1.8;">
+            代表機型：<span class="mono" style="font-size:12px;color:var(--green);">C172、PA28、PC-12</span><br>
+            起飛全重 ≤ <strong style="color:var(--text)">15,500 磅</strong>（約 7 公噸）<br>
+            需要最大保護間隔<br>
+            最易受尾流影響
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:0;">
+        <div class="card-title">補充說明</div>
+        <div class="flow-steps">
+          <div class="flow-step">
+            <div class="flow-num" style="font-size:20px;min-width:24px;">A</div>
+            <div class="flow-content">
+              <div class="flow-title">目視間隔 (VMC)</div>
+              <div class="flow-desc">天氣良好時，機師回報「看見前機」後可要求縮減間隔，管制員核准後尾流責任轉移至機師。</div>
+            </div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-num" style="font-size:20px;min-width:24px;">B</div>
+            <div class="flow-content">
+              <div class="flow-title">跑道佔用時間 (ROT)</div>
+              <div class="flow-desc">繁忙機場（如桃園 RCTP、香港 VHHH）實施快速脫離跑道程序（RET），以縮短進場間隔、提升跑道容量。</div>
+            </div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-num" style="font-size:20px;min-width:24px;">C</div>
+            <div class="flow-content">
+              <div class="flow-title">法規依據</div>
+              <div class="flow-desc">所有間隔標準依據 <span class="mono" style="color:var(--accent2);font-size:12px;">ICAO Doc 4444 (PANS-ATM)</span> 及各國民航局（如台灣 ANM）規定執行。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <span>ZKKP · Pyongyang FIR — 資料參考手冊</span>
+    <span>僅供 IVAO 虛擬飛行模擬用途</span>
+  </footer>
+</div>
+
+<script>
+  function switchTab(name, btn) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('panel-' + name).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  function switchSep(name, btn) {
+    document.querySelectorAll('#sep-subtabs ~ .sub-panel, #sep-tower, #sep-approach, #sep-classes').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('#sep-subtabs .sub-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('sep-' + name).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  function switchLoa(name, btn) {
+    document.querySelectorAll('#loa-china, #loa-japan, #loa-russia').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('#panel-loa .sub-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('loa-' + name).classList.add('active');
+    btn.classList.add('active');
+  }
+</script>
+</body>
+</html>
